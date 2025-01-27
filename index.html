@@ -5,25 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Schedule</title>
     <style>
+        :root {
+            --primary-color: #4CAF50;
+            --bg-dark: #0f111a;
+            --bg-card: #1a1d2e;
+            --bg-task: #242837;
+            --border-color: #2a2e3f;
+            --text-primary: #ffffff;
+            --text-secondary: #6e7891;
+        }
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             max-width: 100%;
             margin: 0;
             padding: 12px;
-            background-color: #0f111a;
-            color: #ffffff;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
             box-sizing: border-box;
+            line-height: 1.5;
         }
 
         .calendar-controls {
-            background-color: #1a1d2e;
+            background-color: var(--bg-card);
             padding: 16px;
-            border-radius: 12px;
+            border-radius: 16px;
             margin-bottom: 16px;
             display: flex;
             flex-direction: column;
             gap: 12px;
-            border: 1px solid #2a2e3f;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
         @media (min-width: 768px) {
@@ -39,28 +51,36 @@
         }
 
         button {
-            background-color: #2d324d;
-            color: #fff;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 8px;
-            font-size: 0.9em;
+            background-color: var(--bg-task);
+            color: var(--text-primary);
+            padding: 10px 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 0.95em;
             font-weight: 500;
             letter-spacing: 0.3px;
             cursor: pointer;
             transition: all 0.2s ease;
         }
 
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            background-color: var(--primary-color);
+        }
+
         .navigation {
             display: flex;
             gap: 12px;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         .current-date {
-            font-size: 1.1em;
-            font-weight: 500;
-            color: #fff;
+            font-size: 1.2em;
+            font-weight: 600;
+            color: var(--text-primary);
+            padding: 0 12px;
         }
 
         .view-toggle {
@@ -68,70 +88,86 @@
             gap: 8px;
         }
 
+        .active-view-btn {
+            background-color: var(--primary-color);
+        }
+
         /* Week View - Modern Style */
         .week-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
             background-color: transparent;
             padding: 0;
         }
 
-        @media (min-width: 1024px) {
+        @media (min-width: 1200px) {
             .week-grid {
                 grid-template-columns: repeat(7, 1fr);
             }
         }
 
         .day-column {
-            background-color: #1a1d2e;
-            border-radius: 12px;
-            padding: 12px;
+            background-color: var(--bg-card);
+            border-radius: 16px;
+            padding: 16px;
             min-height: 150px;
-            border: 1px solid #2a2e3f;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .day-column:hover {
+            transform: translateY(-2px);
         }
 
         .day-header {
             text-align: left;
             padding: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
         .day-header .date {
-            color: #fff;
-            font-size: 1.4em;
-            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 1.6em;
+            font-weight: 700;
             margin-top: 4px;
         }
 
         /* Week View Task Items */
         .task-item:not(.day-view) {
-            background-color: #242837;
-            padding: 12px 16px;
-            margin-bottom: 8px;
-            border-radius: 8px;
-            border-left: 3px solid #4CAF50;
-            font-size: 0.9em;
+            background-color: var(--bg-task);
+            padding: 14px 18px;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            border-left: 3px solid var(--primary-color);
+            font-size: 0.95em;
             transition: all 0.2s ease;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .task-item:not(.day-view):hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
         }
 
         .task-item:not(.day-view) .checkbox {
-            width: 20px;
-            height: 20px;
-            border: 2px solid #4CAF50;
-            border-radius: 6px;
+            width: 22px;
+            height: 22px;
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.2s ease;
             flex-shrink: 0;
+            position: relative;
+        }
+
+        .task-item:not(.day-view) .checkbox:hover {
+            background-color: rgba(76, 175, 80, 0.1);
         }
 
         .task-item:not(.day-view) .task-content {
@@ -141,25 +177,28 @@
 
         .task-item:not(.day-view) strong {
             display: block;
-            margin-bottom: 4px;
-            color: #fff;
-            font-weight: 500;
+            margin-bottom: 6px;
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 1.05em;
         }
 
         .task-item:not(.day-view) p {
-            color: #6e7891;
-            font-size: 0.85em;
+            color: var(--text-secondary);
+            font-size: 0.9em;
             margin: 0;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            line-height: 1.4;
         }
 
         /* Day View specific styles */
         .day-grid {
             display: grid;
-            grid-template-columns: 35px 1fr;
-            gap: 8px;
+            grid-template-columns: 50px 1fr;
+            gap: 12px;
+            margin-top: 24px;
         }
 
         .hour-label {
@@ -167,75 +206,70 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 8px 8px;
-            color: #6e7891;
-            font-size: 0.75em;
+            padding: 8px 12px;
+            color: var(--text-secondary);
+            font-size: 0.85em;
+            font-weight: 500;
         }
 
         .hour-slots {
             position: relative;
-            background-color: #1a1d2e;
-            border-radius: 12px;
+            background-color: var(--bg-card);
+            border-radius: 16px;
             min-height: calc(14 * 2000px);
-            border: 1px solid #2a2e3f;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
         .hour-slot {
             height: 2000px;
-            border: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
             position: relative;
             background-color: rgba(255,255,255,0.02);
         }
 
-        .hour-slot:nth-child(even) {
-            background-color: rgba(255,255,255,0.01);
-        }
-
         .task-item.day-view {
             position: absolute;
-            left: 8px;
-            right: 8px;
-            background-color: #242837;
-            padding: 12px 16px;
-            border-radius: 8px;
-            border-left: 3px solid #4CAF50;
-            font-size: 0.9em;
+            left: 12px;
+            right: 12px;
+            background-color: var(--bg-task);
+            padding: 14px 18px;
+            border-radius: 12px;
+            border-left: 3px solid var(--primary-color);
+            font-size: 0.95em;
             z-index: 1;
             display: flex;
             align-items: center;
-            gap: 12px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            gap: 14px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
             min-height: 60px;
+            transition: transform 0.2s ease;
+        }
+
+        .task-item.day-view:hover {
+            transform: translateX(4px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
         }
 
         .time-label {
             opacity: 0.7;
-            font-size: 0.85em;
+            font-size: 0.9em;
+            font-weight: 500;
         }
 
         .time-label.hour {
             opacity: 1;
-            font-weight: 500;
-            color: #fff;
+            font-weight: 600;
+            color: var(--text-primary);
         }
 
         .time-label.minor {
             opacity: 0.4;
-            font-size: 0.75em;
-        }
-
-        .task-item .checkbox {
-            width: 20px;
-            height: 20px;
-            border: 2px solid #4CAF50;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            flex-shrink: 0;
+            font-size: 0.8em;
         }
 
         .task-item.completed .checkbox {
-            background-color: #4CAF50;
+            background-color: var(--primary-color);
             position: relative;
         }
 
@@ -246,11 +280,68 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            font-size: 0.9em;
         }
 
-        .task-item .task-content {
-            flex-grow: 1;
-            min-width: 0;
+        .task-item.completed .task-content {
+            opacity: 0.6;
+        }
+
+        /* Sparkle animation */
+        @keyframes sparkle {
+            0% { transform: scale(0) rotate(0deg); opacity: 0; }
+            50% { transform: scale(1.2) rotate(180deg); opacity: 1; }
+            100% { transform: scale(0) rotate(360deg); opacity: 0; }
+        }
+
+        .sparkle {
+            position: fixed;
+            pointer-events: none;
+            animation: sparkle 0.8s ease-in-out forwards;
+            font-size: 1.2em;
+            z-index: 1000;
+        }
+
+        /* Loading state */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            body {
+                padding: 8px;
+            }
+
+            .calendar-controls {
+                padding: 12px;
+            }
+
+            button {
+                padding: 8px 16px;
+                font-size: 0.9em;
+            }
+
+            .task-item:not(.day-view) {
+                padding: 12px 16px;
+            }
+
+            .day-header .date {
+                font-size: 1.4em;
+            }
+
+            .current-date {
+                font-size: 1.1em;
+            }
+        }
+
+        /* Dark mode optimization */
+        @media (prefers-color-scheme: dark) {
+            .task-item:not(.day-view):hover,
+            .task-item.day-view:hover {
+                box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+            }
         }
     </style>
 </head>
