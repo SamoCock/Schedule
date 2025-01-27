@@ -19,6 +19,9 @@
             --checkbox-bg: rgba(76, 175, 80, 0.05);
             --sparkle-emoji: '✨';
             --checkmark-emoji: '✓';
+            --shadow-sm: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-md: 0 6px 12px rgba(0,0,0,0.15);
+            --shadow-lg: 0 8px 16px rgba(0,0,0,0.2);
         }
 
         html[data-theme="coquette"] {
@@ -41,10 +44,13 @@
 
         /* Theme transition */
         * {
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: background-color 0.3s ease,
+                        color 0.3s ease,
+                        border-color 0.3s ease,
+                        box-shadow 0.3s ease;
         }
 
-        /* Add theme toggle button */
+        /* Theme toggle button */
         .theme-toggle {
             position: fixed;
             bottom: 20px;
@@ -63,86 +69,131 @@
             font-size: 24px;
             transform-origin: center;
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: fixed !important;
         }
 
         .theme-toggle:hover {
             transform: scale(1.1) rotate(360deg);
         }
 
-        /* Coquette mode specific styles */
-        html[data-theme="coquette"] .task-item {
-            border: 2px solid var(--border-color);
-            border-left: 3px solid var(--primary-color);
+        /* Theme-specific styles */
+        html[data-theme="coquette"] {
+            .task-item {
+                border: 2px solid var(--border-color);
+                border-left: 3px solid var(--primary-color);
+                box-shadow: var(--shadow-sm);
+            }
+
+            .task-item:hover {
+                box-shadow: var(--shadow-md);
+            }
+
+            .checkbox {
+                border-radius: 50%;
+                border: 2px solid var(--primary-color);
+                background: white;
+            }
+
+            .checkbox::before {
+                content: '🎀';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-size: 0.8em;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+
+            .checkbox:hover::before {
+                opacity: 0.5;
+            }
+
+            .task-item.completed .checkbox::after {
+                content: '💖';
+                text-shadow: none;
+            }
+
+            * {
+                font-family: 'Quicksand', sans-serif;
+            }
+
+            .day-header .date {
+                font-weight: 700;
+                color: var(--primary-color);
+            }
+
+            .calendar-controls {
+                background: white;
+                border: 2px solid var(--border-color);
+            }
+
+            button {
+                background: white;
+                border: 2px solid var(--border-color);
+                color: var(--primary-color);
+                transition: all 0.3s ease;
+            }
+
+            button:hover {
+                background: var(--primary-gradient);
+                color: white;
+                border-color: transparent;
+                transform: translateY(-2px);
+            }
+
+            .active-view-btn {
+                background: var(--primary-gradient);
+                color: white;
+                border-color: transparent;
+            }
         }
 
-        html[data-theme="coquette"] .task-item::before {
-            background: var(--primary-gradient);
-            opacity: 0.5;
+        /* Theme switching animation */
+        .theme-switching * {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        html[data-theme="coquette"] .task-item:hover::before {
-            opacity: 1;
+        .theme-switching .day-column {
+            animation: cardFloat 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            animation-delay: calc(var(--column-index) * 0.1s);
         }
 
-        html[data-theme="coquette"] .checkbox {
-            border-radius: 50%;
-            border: 2px solid var(--primary-color);
-            background: white;
+        .theme-switching .task-item {
+            animation: themeSwitch 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+            animation-delay: calc(var(--task-index) * 0.05s);
         }
 
-        html[data-theme="coquette"] .checkbox::before {
-            content: '🎀';
+        /* Sparkle animation */
+        @keyframes sparkle {
+            0% { transform: scale(0) rotate(0deg); opacity: 0; }
+            50% { transform: scale(1.5) rotate(180deg); opacity: 1; }
+            100% { transform: scale(0) rotate(360deg); opacity: 0; }
+        }
+
+        .sparkle {
+            position: fixed;
+            pointer-events: none;
+            animation: sparkle 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            font-size: 1.4em;
+            z-index: 1000;
+            color: var(--accent-color);
+            text-shadow: 0 0 10px var(--accent-color);
+        }
+
+        /* Checkmark animation for completed tasks */
+        .checkmark {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 0.8em;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            font-size: 1.2em;
+            animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
 
-        html[data-theme="coquette"] .checkbox:hover::before {
-            opacity: 0.5;
-        }
-
-        html[data-theme="coquette"] .task-item.completed .checkbox::after {
-            content: '💖';
-            text-shadow: none;
-        }
-
-        html[data-theme="coquette"] .calendar-controls {
-            background: white;
-            border: 2px solid var(--border-color);
-        }
-
-        html[data-theme="coquette"] button {
-            background: white;
-            border: 2px solid var(--border-color);
-            color: var(--primary-color);
-        }
-
-        html[data-theme="coquette"] button:hover {
-            background: var(--primary-gradient);
-            color: white;
-            border-color: transparent;
-        }
-
-        html[data-theme="coquette"] .active-view-btn {
-            background: var(--primary-gradient);
-            color: white;
-            border-color: transparent;
-        }
-
-        /* Add cute fonts for coquette mode */
-        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap');
-
-        html[data-theme="coquette"] * {
-            font-family: 'Quicksand', sans-serif;
-        }
-
-        html[data-theme="coquette"] .day-header .date {
-            font-weight: 700;
-            color: var(--primary-color);
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         }
 
         /* Theme transition animations */
@@ -169,42 +220,6 @@
             0% { transform: translateY(0) scale(1); }
             50% { transform: translateY(-8px) scale(1.02); }
             100% { transform: translateY(0) scale(1); }
-        }
-
-        .theme-switching .day-column {
-            animation: cardFloat 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-            animation-delay: calc(var(--column-index) * 0.1s);
-        }
-
-        .theme-switching .task-item {
-            animation: themeSwitch 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-            animation-delay: calc(var(--task-index) * 0.05s);
-        }
-
-        /* Enhance theme toggle animation */
-        .theme-toggle {
-            overflow: hidden;
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .theme-toggle::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: var(--primary-gradient);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-                        height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: -1;
-        }
-
-        .theme-toggle:hover::before {
-            width: 150%;
-            height: 150%;
         }
 
         /* Add transition delays for smoother theme switch */
@@ -530,23 +545,6 @@
             font-size: 0.8em;
         }
 
-        /* Sparkle animation */
-        @keyframes sparkle {
-            0% { transform: scale(0) rotate(0deg); opacity: 0; }
-            50% { transform: scale(1.5) rotate(180deg); opacity: 1; }
-            100% { transform: scale(0) rotate(360deg); opacity: 0; }
-        }
-
-        .sparkle {
-            position: fixed;
-            pointer-events: none;
-            animation: sparkle 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-            font-size: 1.4em;
-            z-index: 1000;
-            color: var(--accent-color);
-            text-shadow: 0 0 10px rgba(100, 221, 23, 0.5);
-        }
-
         /* Loading state */
         .loading {
             opacity: 0.7;
@@ -623,67 +621,156 @@
             margin-bottom: 2px;
         }
 
-        /* Add mobile-friendly styles */
+        /* Mobile Optimizations */
         @media (max-width: 768px) {
-            .day-grid {
-                grid-template-columns: 40px 1fr;
+            body {
+                padding: 8px;
+            }
+
+            .calendar-controls {
+                padding: 12px;
                 gap: 8px;
             }
 
-            .hour-label {
-                padding: 4px;
-                font-size: 0.75em;
+            .navigation {
+                gap: 8px;
             }
 
-            .task-item.day-view {
-                left: 8px;
-                right: 8px;
+            .navigation button {
                 padding: 8px 12px;
-                min-height: 50px;
+                font-size: 0.9em;
+            }
+
+            .current-date {
+                font-size: 1em;
+            }
+
+            .week-grid {
+                gap: 8px;
+            }
+
+            .day-column {
+                padding: 12px;
+                min-height: auto;
+            }
+
+            .day-header {
+                padding: 4px;
+                margin-bottom: 12px;
+            }
+
+            .day-header .date {
+                font-size: 1.2em;
+            }
+
+            .task-item:not(.day-view) {
+                padding: 10px 14px;
+                margin-bottom: 8px;
                 gap: 10px;
             }
 
-            .task-item.day-view .checkbox {
+            .task-item:not(.day-view) .checkbox {
                 width: 20px;
                 height: 20px;
             }
 
-            .task-item.day-view .task-content {
-                font-size: 0.9em;
-            }
-
-            .task-item.day-view .task-time {
-                font-size: 0.8em;
-            }
-
-            .task-item.day-view strong {
+            .task-item:not(.day-view) strong {
                 font-size: 0.95em;
+                margin-bottom: 4px;
             }
 
-            .task-item.day-view p {
-                font-size: 0.85em;
-                display: none;
-            }
-
-            #dayViewHeader {
-                font-size: 0.9em;
-                padding: 12px;
-                background: var(--bg-card);
-                border-radius: 12px;
-                margin-bottom: 16px;
-                border: 1px solid var(--border-color);
-            }
-
-            .hour-slots {
-                border-radius: 12px;
-            }
-
-            .time-label.minor {
-                display: none;
-            }
-
-            .time-label.hour {
+            .task-item:not(.day-view) p {
                 font-size: 0.8em;
+                white-space: normal;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+
+            .task-time {
+                font-size: 0.75em;
+            }
+
+            /* Improve touch targets */
+            .checkbox {
+                min-width: 24px;
+                min-height: 24px;
+            }
+
+            /* Theme toggle adjustments */
+            .theme-toggle {
+                width: 50px;
+                height: 50px;
+                bottom: 16px;
+                right: 16px;
+            }
+
+            /* Progress chart adjustments */
+            .progress-chart {
+                margin-top: 16px;
+                padding: 12px;
+            }
+
+            .chart-bars {
+                height: 120px;
+            }
+
+            .chart-label {
+                font-size: 0.75em;
+            }
+
+            /* Streak counter adjustments */
+            .streak-counter {
+                padding: 6px 12px;
+                font-size: 0.9em;
+                bottom: 16px;
+                left: 16px;
+            }
+
+            /* Achievement panel adjustments */
+            .achievements-panel {
+                max-width: 250px;
+                padding: 12px;
+                top: 16px;
+                right: 16px;
+            }
+
+            .achievement {
+                padding: 6px;
+                gap: 8px;
+            }
+
+            .achievement-icon {
+                font-size: 1.2em;
+            }
+
+            .achievement-title {
+                font-size: 0.9em;
+            }
+
+            .achievement-description {
+                font-size: 0.8em;
+            }
+        }
+
+        /* Additional mobile optimizations for very small screens */
+        @media (max-width: 360px) {
+            .task-item:not(.day-view) p {
+                display: none;
+            }
+
+            .day-header .date {
+                font-size: 1.1em;
+            }
+
+            .current-date {
+                font-size: 0.9em;
+            }
+
+            .navigation button {
+                padding: 6px 10px;
+                font-size: 0.85em;
             }
         }
 
@@ -850,6 +937,73 @@
         .fade-in {
             animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
+
+        /* Day View Mobile Optimizations */
+        @media (max-width: 768px) {
+            .day-grid {
+                grid-template-columns: 40px 1fr;
+                gap: 8px;
+            }
+
+            .hour-label {
+                padding: 4px;
+                font-size: 0.75em;
+            }
+
+            .task-item.day-view {
+                left: 8px;
+                right: 8px;
+                padding: 8px 12px;
+                min-height: 40px;
+                gap: 10px;
+            }
+
+            .task-item.day-view .checkbox {
+                width: 20px;
+                height: 20px;
+            }
+
+            .task-item.day-view .task-content {
+                font-size: 0.9em;
+            }
+
+            .task-item.day-view .task-time {
+                font-size: 0.75em;
+            }
+
+            .task-item.day-view strong {
+                font-size: 0.95em;
+                margin-bottom: 2px;
+            }
+
+            .task-item.day-view p {
+                display: none;
+            }
+
+            #dayViewHeader {
+                font-size: 0.9em;
+                padding: 12px;
+                background: var(--bg-card);
+                border-radius: 12px;
+                margin-bottom: 12px;
+                border: 1px solid var(--border-color);
+            }
+
+            .hour-slots {
+                border-radius: 12px;
+            }
+
+            .time-label.minor {
+                display: none;
+            }
+
+            .time-label.hour {
+                font-size: 0.8em;
+            }
+        }
+
+        /* Add Quicksand font import */
+        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap');
     </style>
 </head>
 <body>
@@ -1341,7 +1495,7 @@
                 left: 8px;
                 right: 8px;
                 padding: 8px 12px;
-                min-height: 50px;
+                min-height: 40px;
                 gap: 10px;
             }
 
@@ -1355,15 +1509,15 @@
             }
 
             .task-item.day-view .task-time {
-                font-size: 0.8em;
+                font-size: 0.75em;
             }
 
             .task-item.day-view strong {
                 font-size: 0.95em;
+                margin-bottom: 2px;
             }
 
             .task-item.day-view p {
-                font-size: 0.85em;
                 display: none;
             }
 
@@ -1372,7 +1526,7 @@
                 padding: 12px;
                 background: var(--bg-card);
                 border-radius: 12px;
-                margin-bottom: 16px;
+                margin-bottom: 12px;
                 border: 1px solid var(--border-color);
             }
 
