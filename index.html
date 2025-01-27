@@ -412,6 +412,70 @@
             font-weight: 500;
             margin-bottom: 2px;
         }
+
+        /* Add mobile-friendly styles */
+        @media (max-width: 768px) {
+            .day-grid {
+                grid-template-columns: 40px 1fr;
+                gap: 8px;
+            }
+
+            .hour-label {
+                padding: 4px;
+                font-size: 0.75em;
+            }
+
+            .task-item.day-view {
+                left: 8px;
+                right: 8px;
+                padding: 8px 12px;
+                min-height: 50px;
+                gap: 10px;
+            }
+
+            .task-item.day-view .checkbox {
+                width: 20px;
+                height: 20px;
+            }
+
+            .task-item.day-view .task-content {
+                font-size: 0.9em;
+            }
+
+            .task-item.day-view .task-time {
+                font-size: 0.8em;
+            }
+
+            .task-item.day-view strong {
+                font-size: 0.95em;
+            }
+
+            .task-item.day-view p {
+                font-size: 0.85em;
+                display: none;
+            }
+
+            #dayViewHeader {
+                font-size: 0.9em;
+                padding: 12px;
+                background: var(--bg-card);
+                border-radius: 12px;
+                margin-bottom: 16px;
+                border: 1px solid var(--border-color);
+            }
+
+            .hour-slots {
+                border-radius: 12px;
+            }
+
+            .time-label.minor {
+                display: none;
+            }
+
+            .time-label.hour {
+                font-size: 0.8em;
+            }
+        }
     </style>
 </head>
 <body>
@@ -630,12 +694,12 @@
             const progress = (completedTasks / dayTasks.length) * 100;
             
             // Update progress in week view
-            const dayColumn = document.querySelector(`#day-${dayOfWeek}`);
-            if (dayColumn) {
-                const columnParent = dayColumn.closest('.day-column');
-                if (columnParent) {
-                    const progressBar = columnParent.querySelector('.day-progress-bar');
-                    const statsElement = columnParent.querySelector('.day-stats');
+            const dayContainer = document.getElementById(`day-${dayOfWeek}`);
+            if (dayContainer) {
+                const dayColumn = dayContainer.closest('.day-column');
+                if (dayColumn) {
+                    const progressBar = dayColumn.querySelector('.day-progress-bar');
+                    const statsElement = dayColumn.querySelector('.day-stats');
                     
                     if (progressBar) {
                         progressBar.style.width = `${progress}%`;
@@ -803,8 +867,77 @@
             }, sparkleCount * 100);
         }
 
+        // Add mobile styles to the document
+        const mobileStyles = `
+        @media (max-width: 768px) {
+            .day-grid {
+                grid-template-columns: 40px 1fr;
+                gap: 8px;
+            }
+
+            .hour-label {
+                padding: 4px;
+                font-size: 0.75em;
+            }
+
+            .task-item.day-view {
+                left: 8px;
+                right: 8px;
+                padding: 8px 12px;
+                min-height: 50px;
+                gap: 10px;
+            }
+
+            .task-item.day-view .checkbox {
+                width: 20px;
+                height: 20px;
+            }
+
+            .task-item.day-view .task-content {
+                font-size: 0.9em;
+            }
+
+            .task-item.day-view .task-time {
+                font-size: 0.8em;
+            }
+
+            .task-item.day-view strong {
+                font-size: 0.95em;
+            }
+
+            .task-item.day-view p {
+                font-size: 0.85em;
+                display: none;
+            }
+
+            #dayViewHeader {
+                font-size: 0.9em;
+                padding: 12px;
+                background: var(--bg-card);
+                border-radius: 12px;
+                margin-bottom: 16px;
+                border: 1px solid var(--border-color);
+            }
+
+            .hour-slots {
+                border-radius: 12px;
+            }
+
+            .time-label.minor {
+                display: none;
+            }
+
+            .time-label.hour {
+                font-size: 0.8em;
+            }
+        }
+        `;
+
         // Initialize the view
         document.addEventListener('DOMContentLoaded', () => {
+            const styleSheet = document.createElement('style');
+            styleSheet.textContent = mobileStyles;
+            document.head.appendChild(styleSheet);
             toggleView('week');
         });
     </script>
