@@ -686,6 +686,170 @@
                 font-size: 0.8em;
             }
         }
+
+        /* Achievement System Styles */
+        .achievements-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-md);
+            z-index: 1000;
+            max-width: 300px;
+            transform: translateX(120%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .achievements-panel.show {
+            transform: translateX(0);
+        }
+
+        .achievement {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding: 8px;
+            border-radius: 8px;
+            background: var(--bg-task);
+            transition: all 0.3s ease;
+        }
+
+        .achievement:last-child {
+            margin-bottom: 0;
+        }
+
+        .achievement-icon {
+            font-size: 1.5em;
+        }
+
+        .achievement-details {
+            flex: 1;
+        }
+
+        .achievement-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .achievement-description {
+            font-size: 0.85em;
+            color: var(--text-secondary);
+        }
+
+        /* Weekly Progress Chart */
+        .progress-chart {
+            margin-top: 24px;
+            padding: 16px;
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .chart-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        .chart-bars {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            height: 150px;
+            gap: 8px;
+        }
+
+        .chart-bar {
+            flex: 1;
+            background: var(--primary-gradient);
+            border-radius: 8px 8px 0 0;
+            min-width: 30px;
+            transition: height 0.3s ease;
+            position: relative;
+        }
+
+        .chart-bar::before {
+            content: attr(data-percentage);
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.85em;
+            color: var(--text-secondary);
+        }
+
+        .chart-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+        }
+
+        .chart-label {
+            font-size: 0.85em;
+            color: var(--text-secondary);
+            text-align: center;
+            flex: 1;
+        }
+
+        /* Perfect Day Animation */
+        @keyframes perfectDay {
+            0% { transform: scale(0) rotate(0deg); opacity: 0; }
+            50% { transform: scale(1.2) rotate(180deg); opacity: 1; }
+            100% { transform: scale(1) rotate(360deg); opacity: 0; }
+        }
+
+        .perfect-day-celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .celebration-emoji {
+            position: absolute;
+            font-size: 2em;
+            animation: perfectDay 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        /* Streak Counter */
+        .streak-counter {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: var(--primary-gradient);
+            border-radius: 20px;
+            padding: 8px 16px;
+            color: white;
+            font-weight: 600;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 1000;
+        }
+
+        .streak-counter .streak-icon {
+            font-size: 1.2em;
+        }
+
+        /* Page Load Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
     </style>
 </head>
 <body>
@@ -714,6 +878,29 @@
     </div>
 
     <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">🎀</button>
+
+    <div class="achievements-panel" id="achievementsPanel">
+        <div class="achievement">
+            <div class="achievement-icon">🏆</div>
+            <div class="achievement-details">
+                <div class="achievement-title">Perfect Day</div>
+                <div class="achievement-description">Complete all tasks in a day</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="streak-counter" id="streakCounter">
+        <span class="streak-icon">🔥</span>
+        <span class="streak-count">0 day streak</span>
+    </div>
+
+    <div class="progress-chart">
+        <div class="chart-title">Weekly Progress</div>
+        <div class="chart-bars" id="chartBars"></div>
+        <div class="chart-labels" id="chartLabels"></div>
+    </div>
+
+    <div class="perfect-day-celebration" id="celebration"></div>
 
     <script>
         let currentDate = new Date();
@@ -886,10 +1073,8 @@
             const currentState = localStorage.getItem(`task-${taskId}-${dateKey}`) === 'true';
             const newState = !currentState;
             
-            // Update localStorage
             localStorage.setItem(`task-${taskId}-${dateKey}`, newState);
             
-            // Find all instances of this task in both views and update them
             document.querySelectorAll(`[data-task-id="${taskId}"]`).forEach(taskElement => {
                 if (newState) {
                     taskElement.classList.add('completed');
@@ -899,15 +1084,30 @@
                 }
             });
 
-            // Update progress bars
             if (currentView === 'week') {
-                // Get the day of week from the task's container
                 const taskContainer = document.querySelector(`[data-task-id="${taskId}"]`).closest('[id^="day-"]');
                 const dayOfWeek = parseInt(taskContainer.id.replace('day-', ''));
                 updateDayProgress(dayOfWeek);
             } else {
                 updateDayProgress(currentDate.getDay());
             }
+            
+            // Check for perfect day
+            const dayTasks = fixedSchedule.filter(task => 
+                task.dayOfWeek === currentDate.getDay() &&
+                !(document.documentElement.getAttribute('data-theme') === 'coquette' && 
+                  task.title.includes('YouTube'))
+            );
+            
+            const allCompleted = dayTasks.every(task => 
+                localStorage.getItem(`task-${task.id}-${dateKey}`) === 'true'
+            );
+            
+            if (allCompleted) {
+                celebratePerfectDay();
+            }
+            
+            updateProgressChart();
         }
 
         function updateDayProgress(dayOfWeek) {
@@ -1195,40 +1395,142 @@
             const styleSheet = document.createElement('style');
             styleSheet.textContent = mobileStyles;
             document.head.appendChild(styleSheet);
+            
+            loadSavedTheme();
+            document.body.classList.add('fade-in');
+            
             toggleView('week');
+            updateStreak();
+            updateProgressChart();
         });
 
-        // Add theme switching function
+        // Add theme persistence
+        function loadSavedTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'sigma';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            document.getElementById('themeToggle').textContent = savedTheme === 'sigma' ? '🎀' : '😎';
+        }
+
+        // Update theme toggle function
         function toggleTheme() {
             const html = document.documentElement;
             const themeToggle = document.getElementById('themeToggle');
             const currentTheme = html.getAttribute('data-theme');
             const newTheme = currentTheme === 'sigma' ? 'coquette' : 'sigma';
             
-            // Add transition class
             document.body.classList.add('theme-switching');
-            
-            // Switch theme
             html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
             themeToggle.textContent = newTheme === 'sigma' ? '🎀' : '😎';
             
-            // Update sparkles for the new theme
             const sparkleEmoji = newTheme === 'sigma' ? '✨' : '🌸';
             document.querySelectorAll('.sparkle').forEach(sparkle => {
                 sparkle.textContent = sparkleEmoji;
             });
             
-            // Reload the current view to update tasks
             if (currentView === 'week') {
                 loadWeekView();
             } else {
                 loadDayView();
             }
             
-            // Remove transition class after longer animation duration
             setTimeout(() => {
                 document.body.classList.remove('theme-switching');
             }, 1000);
+        }
+
+        // Add streak tracking
+        function updateStreak() {
+            const today = formatDate(new Date());
+            const lastCompletedDay = localStorage.getItem('lastCompletedDay');
+            let streak = parseInt(localStorage.getItem('streak') || '0');
+            
+            if (lastCompletedDay === today) {
+                // Already handled today
+                return;
+            }
+            
+            const yesterday = formatDate(new Date(Date.now() - 86400000));
+            if (lastCompletedDay === yesterday) {
+                streak++;
+            } else if (lastCompletedDay !== today) {
+                streak = 0;
+            }
+            
+            localStorage.setItem('streak', streak);
+            document.querySelector('.streak-count').textContent = `${streak} day streak`;
+        }
+
+        // Add perfect day celebration
+        function celebratePerfectDay() {
+            const celebration = document.getElementById('celebration');
+            celebration.innerHTML = '';
+            
+            const emojis = document.documentElement.getAttribute('data-theme') === 'sigma' 
+                ? ['🏆', '⭐', '✨', '🌟'] 
+                : ['💖', '🌸', '✨', '👑'];
+            
+            for (let i = 0; i < 20; i++) {
+                const emoji = document.createElement('div');
+                emoji.className = 'celebration-emoji';
+                emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                emoji.style.left = Math.random() * 100 + 'vw';
+                emoji.style.top = Math.random() * 100 + 'vh';
+                emoji.style.animationDelay = (Math.random() * 2) + 's';
+                celebration.appendChild(emoji);
+            }
+
+            // Show achievement
+            document.getElementById('achievementsPanel').classList.add('show');
+            setTimeout(() => {
+                document.getElementById('achievementsPanel').classList.remove('show');
+            }, 3000);
+        }
+
+        // Update progress chart
+        function updateProgressChart() {
+            const chartBars = document.getElementById('chartBars');
+            const chartLabels = document.getElementById('chartLabels');
+            chartBars.innerHTML = '';
+            chartLabels.innerHTML = '';
+            
+            const startOfWeek = getStartOfWeek(new Date(currentDate));
+            
+            for (let i = 0; i < 7; i++) {
+                const currentDay = new Date(startOfWeek);
+                currentDay.setDate(startOfWeek.getDate() + i);
+                const dateKey = formatDate(currentDay);
+                
+                const dayTasks = fixedSchedule.filter(task => 
+                    task.dayOfWeek === i &&
+                    !(document.documentElement.getAttribute('data-theme') === 'coquette' && 
+                      task.title.includes('YouTube'))
+                );
+                
+                const completedTasks = dayTasks.filter(task => 
+                    localStorage.getItem(`task-${task.id}-${dateKey}`) === 'true'
+                ).length;
+                
+                const percentage = dayTasks.length ? (completedTasks / dayTasks.length) * 100 : 0;
+                
+                const bar = document.createElement('div');
+                bar.className = 'chart-bar';
+                bar.style.height = percentage + '%';
+                bar.setAttribute('data-percentage', Math.round(percentage) + '%');
+                chartBars.appendChild(bar);
+                
+                const label = document.createElement('div');
+                label.className = 'chart-label';
+                label.textContent = daysOfWeek[i].slice(0, 3);
+                chartLabels.appendChild(label);
+                
+                // Check for perfect day
+                if (percentage === 100) {
+                    localStorage.setItem('lastCompletedDay', dateKey);
+                    updateStreak();
+                }
+            }
         }
     </script>
 </body>
