@@ -454,7 +454,7 @@
                 { id: `${day}_5`, title: "Side Project", time: "10:00", duration: 120, description: "Work on app development (2 hours)", dayOfWeek: day },
                 { id: `${day}_6`, title: "Laundry Start", time: "12:00", duration: 30, description: "Start laundry if needed (12 PM - 5 PM window)", dayOfWeek: day },
                 { id: `${day}_7`, title: "Lunch Break", time: "12:30", duration: 90, description: "Lunch, clean up, brush teeth", dayOfWeek: day },
-                { id: `${day}_8`, title: "Job Search", time: "13:30", duration: 60, description: "Job searching (1 hour)", dayOfWeek: day },
+                { id: `${day}_8`, title: "YouTube Work", time: "14:00", duration: 30, description: "Work on YouTube channel (30 min)", dayOfWeek: day },
                 { id: `${day}_9`, title: "Gym Time", time: "14:30", duration: 120, description: "Gym (workout, travel, shower)", dayOfWeek: day },
                 { id: `${day}_10`, title: "Free Time", time: "16:30", duration: 60, description: "Free time or play games (1 hour)", dayOfWeek: day },
                 { id: `${day}_11`, title: "Dinner", time: "17:30", duration: 90, description: "Dinner, clean up, brush teeth (1.5 hours)", dayOfWeek: day },
@@ -499,7 +499,13 @@
 
         function loadDayView() {
             const dayViewHeader = document.getElementById('dayViewHeader');
-            dayViewHeader.textContent = `${daysOfWeek[currentDate.getDay()]} - ${currentDate.toLocaleDateString()}`;
+            dayViewHeader.innerHTML = `
+                ${daysOfWeek[currentDate.getDay()]} - ${currentDate.toLocaleDateString()}
+                <div class="day-stats">0/0 tasks completed</div>
+                <div class="day-progress">
+                    <div class="day-progress-bar" style="width: 0%"></div>
+                </div>
+            `;
 
             const hourLabels = document.getElementById('hourLabels');
             const hourSlots = document.getElementById('hourSlots');
@@ -512,11 +518,11 @@
                 hourLabel.className = 'hour-label';
                 
                 // Create time labels with 5-minute intervals
-                let html = `<span class="time-label hour">${i.toString().padStart(2, '0')}:00</span>`;
+                let html = `<span class="time-label hour">${formatTime(i + ':00')}</span>`;
                 
                 for (let minute = 5; minute < 60; minute += 5) {
                     const opacity = minute % 15 === 0 ? 'time-label' : 'time-label minor';
-                    html += `<span class="${opacity}">${i.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}</span>`;
+                    html += `<span class="${opacity}">${formatTime(i + ':' + String(minute).padStart(2, '0'))}</span>`;
                 }
                 
                 hourLabel.innerHTML = html;
@@ -529,31 +535,27 @@
             }
 
             // Add tasks with proper positioning
-            fixedSchedule.forEach(task => {
-                if (task.dayOfWeek === currentDate.getDay()) {
-                    const taskElement = createTaskElement(task);
-                    taskElement.classList.add('day-view');
-                    
-                    const [hours, minutes] = task.time.split(':').map(Number);
-                    const duration = task.duration || 60;
-                    
-                    // Each hour slot is 2000px tall
-                    // For 8:00 AM, we want position 0
-                    // For 8:15 AM, we want position 500 (quarter of 2000)
-                    // For 9:00 AM, we want position 2000
-                    const hourPosition = (hours - 8) * 2000;  // Position for the hour
-                    const minutePosition = (minutes / 60) * 2000;  // Position within the hour
-                    const topPosition = hourPosition + minutePosition;
-                    
-                    // Calculate height: each minute is 2000/60 pixels tall
-                    const heightInPixels = (duration / 60) * 2000;
-                    
-                    taskElement.style.top = `${topPosition}px`;
-                    taskElement.style.height = `${heightInPixels - 4}px`;  // Subtract 4px for gap
-                    
-                    hourSlots.appendChild(taskElement);
-                }
+            const dayTasks = fixedSchedule.filter(task => task.dayOfWeek === currentDate.getDay());
+            dayTasks.forEach(task => {
+                const taskElement = createTaskElement(task);
+                taskElement.classList.add('day-view');
+                
+                const [hours, minutes] = task.time.split(':').map(Number);
+                const duration = task.duration || 60;
+                
+                const hourPosition = (hours - 8) * 2000;
+                const minutePosition = (minutes / 60) * 2000;
+                const topPosition = hourPosition + minutePosition;
+                const heightInPixels = (duration / 60) * 2000;
+                
+                taskElement.style.top = `${topPosition}px`;
+                taskElement.style.height = `${heightInPixels - 4}px`;
+                
+                hourSlots.appendChild(taskElement);
             });
+
+            // Update progress for the current day
+            updateDayProgress(currentDate.getDay());
         }
 
         function createTaskElement(task) {
@@ -567,22 +569,28 @@
             // Calculate end time
             const [hours, minutes] = task.time.split(':').map(Number);
             const endTime = new Date(2024, 0, 1, hours, minutes + (task.duration || 0));
-            const endTimeStr = endTime.toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
-                minute: '2-digit', 
-                hour12: true 
-            });
+            
+            // Format times consistently in 12-hour format
+            const startTimeStr = formatTime(task.time);
+            const endTimeStr = formatTime(`${String(endTime.getHours()).padStart(2, '0')}:${String(endTime.getMinutes()).padStart(2, '0')}`);
             
             taskElement.innerHTML = `
                 <div class="checkbox" onclick="toggleComplete('${task.id}', event)"></div>
                 <div class="task-content">
-                    <div class="task-time">${task.time} - ${endTimeStr}</div>
+                    <div class="task-time">${startTimeStr} - ${endTimeStr}</div>
                     <strong>${task.title}</strong>
                     <p>${task.description}</p>
                 </div>
             `;
             
             return taskElement;
+        }
+
+        function formatTime(time24) {
+            const [hours24, minutes] = time24.split(':').map(Number);
+            const period = hours24 >= 12 ? 'PM' : 'AM';
+            const hours12 = hours24 % 12 || 12;
+            return `${hours12}:${String(minutes).padStart(2, '0')} ${period}`;
         }
 
         function formatDate(date) {
@@ -624,15 +632,35 @@
             // Update progress in week view
             const dayColumn = document.querySelector(`#day-${dayOfWeek}`);
             if (dayColumn) {
-                const progressBar = dayColumn.parentElement.querySelector('.day-progress-bar');
-                if (progressBar) {
-                    progressBar.style.width = `${progress}%`;
+                const columnParent = dayColumn.closest('.day-column');
+                if (columnParent) {
+                    const progressBar = columnParent.querySelector('.day-progress-bar');
+                    const statsElement = columnParent.querySelector('.day-stats');
+                    
+                    if (progressBar) {
+                        progressBar.style.width = `${progress}%`;
+                    }
+                    
+                    if (statsElement) {
+                        statsElement.textContent = `${completedTasks}/${dayTasks.length} tasks completed`;
+                    }
                 }
-                
-                // Update stats
-                const statsElement = dayColumn.parentElement.querySelector('.day-stats');
-                if (statsElement) {
-                    statsElement.textContent = `${completedTasks}/${dayTasks.length} tasks completed`;
+            }
+
+            // Update progress in day view if we're looking at this day
+            if (currentView === 'day' && currentDate.getDay() === dayOfWeek) {
+                const dayViewHeader = document.getElementById('dayViewHeader');
+                if (dayViewHeader) {
+                    const progressBar = dayViewHeader.querySelector('.day-progress-bar');
+                    const statsElement = dayViewHeader.querySelector('.day-stats');
+                    
+                    if (progressBar) {
+                        progressBar.style.width = `${progress}%`;
+                    }
+                    
+                    if (statsElement) {
+                        statsElement.textContent = `${completedTasks}/${dayTasks.length} tasks completed`;
+                    }
                 }
             }
         }
