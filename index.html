@@ -734,7 +734,6 @@
                 const hourLabel = document.createElement('div');
                 hourLabel.className = 'hour-label';
                 
-                // Create time labels with 5-minute intervals
                 let html = `<span class="time-label hour">${formatTime(i + ':00')}</span>`;
                 
                 for (let minute = 5; minute < 60; minute += 5) {
@@ -751,8 +750,13 @@
                 hourSlots.appendChild(hourSlot);
             }
 
+            const currentTheme = document.documentElement.getAttribute('data-theme');
             // Add tasks with proper positioning
-            const dayTasks = fixedSchedule.filter(task => task.dayOfWeek === currentDate.getDay());
+            const dayTasks = fixedSchedule.filter(task => 
+                task.dayOfWeek === currentDate.getDay() && 
+                !(currentTheme === 'coquette' && task.title.includes('YouTube'))
+            );
+
             dayTasks.forEach(task => {
                 const taskElement = createTaskElement(task);
                 taskElement.classList.add('day-view');
@@ -851,17 +855,19 @@
             let dateToCheck;
             
             if (currentView === 'week') {
-                // In week view, find the actual date for this day
                 const startOfWeek = getStartOfWeek(new Date(currentDate));
                 dateToCheck = new Date(startOfWeek);
                 dateToCheck.setDate(startOfWeek.getDate() + dayOfWeek);
             } else {
-                // In day view, use current date
                 dateToCheck = currentDate;
             }
             
             const dateKey = formatDate(dateToCheck);
-            const dayTasks = fixedSchedule.filter(task => task.dayOfWeek === dayOfWeek);
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const dayTasks = fixedSchedule.filter(task => 
+                task.dayOfWeek === dayOfWeek && 
+                !(currentTheme === 'coquette' && task.title.includes('YouTube'))
+            );
             const completedTasks = dayTasks.filter(task => 
                 localStorage.getItem(`task-${task.id}-${dateKey}`) === 'true'
             ).length;
@@ -1000,14 +1006,26 @@
                 if (container) container.innerHTML = '';
             }
 
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+
             // Load tasks for each day
             fixedSchedule.forEach(task => {
+                // Skip YouTube tasks in coquette mode
+                if (currentTheme === 'coquette' && task.title.includes('YouTube')) {
+                    return;
+                }
+                
                 const container = document.getElementById(`day-${task.dayOfWeek}`);
                 if (container) {
                     const taskElement = createTaskElement(task);
                     container.appendChild(taskElement);
                 }
             });
+
+            // Update progress for all days after filtering tasks
+            for (let i = 0; i < 7; i++) {
+                updateDayProgress(i);
+            }
         }
 
         function createSparkle(x, y) {
@@ -1138,6 +1156,13 @@
             document.querySelectorAll('.sparkle').forEach(sparkle => {
                 sparkle.textContent = sparkleEmoji;
             });
+            
+            // Reload the current view to update tasks
+            if (currentView === 'week') {
+                loadWeekView();
+            } else {
+                loadDayView();
+            }
             
             // Remove transition class after animation
             setTimeout(() => {
