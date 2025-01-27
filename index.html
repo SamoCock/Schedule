@@ -663,7 +663,10 @@
 
         function toggleComplete(taskId, event) {
             event.stopPropagation();
-            const dateKey = formatDate(currentDate);
+            const dateKey = formatDate(currentView === 'week' ? 
+                new Date(document.querySelector(`[data-task-id="${taskId}"]`).closest('[data-date]').getAttribute('data-date')) 
+                : currentDate);
+            
             const currentState = localStorage.getItem(`task-${taskId}-${dateKey}`) === 'true';
             const newState = !currentState;
             
@@ -681,11 +684,30 @@
             });
 
             // Update progress bars
-            updateDayProgress(currentDate.getDay());
+            if (currentView === 'week') {
+                // Get the day of week from the task's container
+                const taskContainer = document.querySelector(`[data-task-id="${taskId}"]`).closest('[id^="day-"]');
+                const dayOfWeek = parseInt(taskContainer.id.replace('day-', ''));
+                updateDayProgress(dayOfWeek);
+            } else {
+                updateDayProgress(currentDate.getDay());
+            }
         }
 
         function updateDayProgress(dayOfWeek) {
-            const dateKey = formatDate(currentDate);
+            let dateToCheck;
+            
+            if (currentView === 'week') {
+                // In week view, find the actual date for this day
+                const startOfWeek = getStartOfWeek(new Date(currentDate));
+                dateToCheck = new Date(startOfWeek);
+                dateToCheck.setDate(startOfWeek.getDate() + dayOfWeek);
+            } else {
+                // In day view, use current date
+                dateToCheck = currentDate;
+            }
+            
+            const dateKey = formatDate(dateToCheck);
             const dayTasks = fixedSchedule.filter(task => task.dayOfWeek === dayOfWeek);
             const completedTasks = dayTasks.filter(task => 
                 localStorage.getItem(`task-${task.id}-${dateKey}`) === 'true'
@@ -803,6 +825,7 @@
                 
                 const tasksContainer = document.createElement('div');
                 tasksContainer.id = `day-${i}`;
+                tasksContainer.setAttribute('data-date', formatDate(currentDay));
                 
                 dayColumn.appendChild(dayHeader);
                 dayColumn.appendChild(tasksContainer);
