@@ -52,10 +52,10 @@
 
         /* Theme toggle button */
         .theme-toggle {
-            position: fixed;
+            position: fixed !important;
             bottom: 20px;
             right: 20px;
-            z-index: 1000;
+            z-index: 9999;
             background: var(--primary-gradient);
             border: none;
             border-radius: 50%;
@@ -68,12 +68,33 @@
             justify-content: center;
             font-size: 24px;
             transform-origin: center;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: fixed !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
         }
 
         .theme-toggle:hover {
             transform: scale(1.1) rotate(360deg);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .theme-toggle::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: var(--primary-gradient);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                        height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: -1;
+        }
+
+        .theme-toggle:hover::before {
+            width: 150%;
+            height: 150%;
         }
 
         /* Theme-specific styles */
@@ -1448,16 +1469,20 @@
             sparkle.className = 'sparkle';
             sparkle.style.left = `${x}px`;
             sparkle.style.top = `${y}px`;
+            
             const currentTheme = document.documentElement.getAttribute('data-theme');
             sparkle.textContent = currentTheme === 'sigma' ? '✨' : '🌸';
-            document.body.appendChild(sparkle);
+            sparkle.style.color = getComputedStyle(document.documentElement).getPropertyValue('--accent-color');
+            sparkle.style.textShadow = `0 0 10px ${getComputedStyle(document.documentElement).getPropertyValue('--accent-color')}`;
             
+            document.body.appendChild(sparkle);
             setTimeout(() => sparkle.remove(), 800);
         }
 
         function addSparkles(element) {
             const rect = element.getBoundingClientRect();
             const sparkleCount = 8;
+            const currentTheme = document.documentElement.getAttribute('data-theme');
             
             for (let i = 0; i < sparkleCount; i++) {
                 setTimeout(() => {
@@ -1470,8 +1495,7 @@
             setTimeout(() => {
                 const checkmark = document.createElement('div');
                 checkmark.className = 'checkmark';
-                const currentTheme = document.documentElement.getAttribute('data-theme');
-                checkmark.textContent = currentTheme === 'sigma' ? '✅' : '💝';
+                checkmark.textContent = currentTheme === 'sigma' ? '✓' : '💖';
                 element.appendChild(checkmark);
                 
                 setTimeout(() => checkmark.remove(), 1000);
