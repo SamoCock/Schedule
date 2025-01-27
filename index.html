@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Schedule</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            max-width: 100%;
+            margin: 0;
+            padding: 12px;
+            background-color: #0f111a;
+            color: #ffffff;
+            box-sizing: border-box;
+        }
+
+        .calendar-controls {
+            background-color: #1a1d2e;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            border: 1px solid #2a2e3f;
+        }
+
+        @media (min-width: 768px) {
+            body {
+                padding: 24px;
+            }
+            
+            .calendar-controls {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+        }
+
+        button {
+            background-color: #2d324d;
+            color: #fff;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9em;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .navigation {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .current-date {
+            font-size: 1.1em;
+            font-weight: 500;
+            color: #fff;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Week View - Modern Style */
+        .week-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 12px;
+            background-color: transparent;
+            padding: 0;
+        }
+
+        @media (min-width: 1024px) {
+            .week-grid {
+                grid-template-columns: repeat(7, 1fr);
+            }
+        }
+
+        .day-column {
+            background-color: #1a1d2e;
+            border-radius: 12px;
+            padding: 12px;
+            min-height: 150px;
+            border: 1px solid #2a2e3f;
+        }
+
+        .day-header {
+            text-align: left;
+            padding: 8px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .day-header .date {
+            color: #fff;
+            font-size: 1.4em;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        /* Week View Task Items */
+        .task-item:not(.day-view) {
+            background-color: #242837;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border-left: 3px solid #4CAF50;
+            font-size: 0.9em;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .task-item:not(.day-view):hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .task-item:not(.day-view) .checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #4CAF50;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .task-item:not(.day-view) .task-content {
+            flex-grow: 1;
+            min-width: 0;
+        }
+
+        .task-item:not(.day-view) strong {
+            display: block;
+            margin-bottom: 4px;
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .task-item:not(.day-view) p {
+            color: #6e7891;
+            font-size: 0.85em;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Day View specific styles */
+        .day-grid {
+            display: grid;
+            grid-template-columns: 35px 1fr;
+            gap: 8px;
+        }
+
+        .hour-label {
+            height: 2000px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 8px 8px;
+            color: #6e7891;
+            font-size: 0.75em;
+        }
+
+        .hour-slots {
+            position: relative;
+            background-color: #1a1d2e;
+            border-radius: 12px;
+            min-height: calc(14 * 2000px);
+            border: 1px solid #2a2e3f;
+        }
+
+        .hour-slot {
+            height: 2000px;
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            background-color: rgba(255,255,255,0.02);
+        }
+
+        .hour-slot:nth-child(even) {
+            background-color: rgba(255,255,255,0.01);
+        }
+
+        .task-item.day-view {
+            position: absolute;
+            left: 8px;
+            right: 8px;
+            background-color: #242837;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border-left: 3px solid #4CAF50;
+            font-size: 0.9em;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-height: 60px;
+        }
+
+        .time-label {
+            opacity: 0.7;
+            font-size: 0.85em;
+        }
+
+        .time-label.hour {
+            opacity: 1;
+            font-weight: 500;
+            color: #fff;
+        }
+
+        .time-label.minor {
+            opacity: 0.4;
+            font-size: 0.75em;
+        }
+
+        .task-item .checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #4CAF50;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .task-item.completed .checkbox {
+            background-color: #4CAF50;
+            position: relative;
+        }
+
+        .task-item.completed .checkbox::after {
+            content: '✓';
+            color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .task-item .task-content {
+            flex-grow: 1;
+            min-width: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="calendar-controls">
+        <div class="navigation">
+            <button onclick="previousDay()">&lt; Previous</button>
+            <span class="current-date" id="currentDate"></span>
+            <button onclick="nextDay()">Next &gt;</button>
+        </div>
+        <div class="view-toggle">
+            <button onclick="toggleView('day')" id="dayViewBtn">Day View</button>
+            <button onclick="toggleView('week')" id="weekViewBtn" class="active-view-btn">Week View</button>
+        </div>
+    </div>
+
+    <div class="week-view" id="weekView">
+        <div class="week-grid" id="weekGrid"></div>
+    </div>
+
+    <div class="day-view" id="dayView" style="display: none;">
+        <div class="day-header" id="dayViewHeader"></div>
+        <div class="day-grid">
+            <div class="hour-labels" id="hourLabels"></div>
+            <div class="hour-slots" id="hourSlots"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentDate = new Date();
+        let currentView = 'week';
+        const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        
+        const fixedSchedule = [
+            // Weekday Schedule (Monday-Friday)
+            ...[1,2,3,4,5].flatMap(day => [
+                { id: `${day}_1`, title: "Wake up & Shower", time: "08:00", duration: 15, description: "Morning shower", dayOfWeek: day },
+                { id: `${day}_2`, title: "Make Bed", time: "08:15", duration: 10, description: "Make your bed", dayOfWeek: day },
+                { id: `${day}_3`, title: "Breakfast", time: "08:25", duration: 35, description: "Breakfast and brush teeth", dayOfWeek: day },
+                { id: `${day}_4`, title: "Job Search", time: "09:00", duration: 60, description: "Job searching (1 hour)", dayOfWeek: day },
+                { id: `${day}_5`, title: "Side Project", time: "10:00", duration: 120, description: "Work on app development (2 hours)", dayOfWeek: day },
+                { id: `${day}_6`, title: "Laundry Start", time: "12:00", duration: 30, description: "Start laundry if needed (12 PM - 5 PM window)", dayOfWeek: day },
+                { id: `${day}_7`, title: "Lunch Break", time: "12:30", duration: 90, description: "Lunch, clean up, brush teeth", dayOfWeek: day },
+                { id: `${day}_8`, title: "Job Search", time: "13:30", duration: 60, description: "Job searching (1 hour)", dayOfWeek: day },
+                { id: `${day}_9`, title: "Gym Time", time: "14:30", duration: 120, description: "Gym (workout, travel, shower)", dayOfWeek: day },
+                { id: `${day}_10`, title: "Free Time", time: "16:30", duration: 60, description: "Free time or play games (1 hour)", dayOfWeek: day },
+                { id: `${day}_11`, title: "Dinner", time: "17:30", duration: 90, description: "Dinner, clean up, brush teeth (1.5 hours)", dayOfWeek: day },
+                { id: `${day}_12`, title: "Free Time", time: "19:00", duration: 120, description: "Free time or relax (2 hours)", dayOfWeek: day },
+                { id: `${day}_13`, title: "Bedtime", time: "21:00", duration: 0, description: "Time to go to bed", dayOfWeek: day }
+            ]),
+
+            // Weekend Schedule (Saturday-Sunday)
+            ...[0,6].flatMap(day => [
+                { id: `${day}_1`, title: "Wake up & Shower", time: "08:00", duration: 15, description: "Morning shower", dayOfWeek: day },
+                { id: `${day}_2`, title: "Make Bed", time: "08:15", duration: 10, description: "Make your bed", dayOfWeek: day },
+                { id: `${day}_3`, title: "Breakfast", time: "08:25", duration: 35, description: "Breakfast and brush teeth", dayOfWeek: day },
+                { id: `${day}_4`, title: "YouTube Work", time: "09:00", duration: 180, description: "Work on YouTube channel (3 hours)", dayOfWeek: day },
+                { id: `${day}_5`, title: "Laundry Start", time: "12:00", duration: 30, description: "Start laundry if needed (12 PM - 5 PM window)", dayOfWeek: day },
+                { id: `${day}_6`, title: "Lunch Break", time: "12:30", duration: 90, description: "Lunch, clean up, brush teeth", dayOfWeek: day },
+                { id: `${day}_7`, title: "Gym Time", time: "13:30", duration: 120, description: "Gym (workout, travel, shower)", dayOfWeek: day },
+                { id: `${day}_8`, title: "Free Time", time: "15:30", duration: 120, description: "Free time or play games (2 hours)", dayOfWeek: day },
+                { id: `${day}_9`, title: "Dinner", time: "17:30", duration: 90, description: "Dinner, clean up, brush teeth (1.5 hours)", dayOfWeek: day },
+                { id: `${day}_10`, title: "Free Time", time: "19:00", duration: 120, description: "Free time or relax (2 hours)", dayOfWeek: day },
+                { id: `${day}_11`, title: "Bedtime", time: "21:00", duration: 0, description: "Time to go to bed", dayOfWeek: day }
+            ]),
+
+            // Special weekend tasks
+            { id: "call_mom_fri", title: "Call Mom", time: "18:00", duration: 30, description: "Weekly call with mom", dayOfWeek: 5 },
+            { id: "call_mom_sat", title: "Call Mom", time: "18:00", duration: 30, description: "Weekly call with mom", dayOfWeek: 6 },
+            { id: "call_mom_sun", title: "Call Mom", time: "18:00", duration: 30, description: "Weekly call with mom", dayOfWeek: 0 }
+        ];
+
+        function toggleView(view) {
+            currentView = view;
+            document.getElementById('weekView').style.display = view === 'week' ? 'block' : 'none';
+            document.getElementById('dayView').style.display = view === 'day' ? 'block' : 'none';
+            document.getElementById('weekViewBtn').classList.toggle('active-view-btn', view === 'week');
+            document.getElementById('dayViewBtn').classList.toggle('active-view-btn', view === 'day');
+            
+            if (view === 'week') {
+                loadWeekView();
+            } else {
+                loadDayView();
+            }
+        }
+
+        function loadDayView() {
+            const dayViewHeader = document.getElementById('dayViewHeader');
+            dayViewHeader.textContent = `${daysOfWeek[currentDate.getDay()]} - ${currentDate.toLocaleDateString()}`;
+
+            const hourLabels = document.getElementById('hourLabels');
+            const hourSlots = document.getElementById('hourSlots');
+            hourLabels.innerHTML = '';
+            hourSlots.innerHTML = '';
+
+            // Create hour slots and labels
+            for (let i = 8; i <= 21; i++) {
+                const hourLabel = document.createElement('div');
+                hourLabel.className = 'hour-label';
+                
+                // Create time labels with 5-minute intervals
+                let html = `<span class="time-label hour">${i.toString().padStart(2, '0')}:00</span>`;
+                
+                for (let minute = 5; minute < 60; minute += 5) {
+                    const opacity = minute % 15 === 0 ? 'time-label' : 'time-label minor';
+                    html += `<span class="${opacity}">${i.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}</span>`;
+                }
+                
+                hourLabel.innerHTML = html;
+                hourLabels.appendChild(hourLabel);
+
+                const hourSlot = document.createElement('div');
+                hourSlot.className = 'hour-slot';
+                hourSlot.id = `hour-${i}`;
+                hourSlots.appendChild(hourSlot);
+            }
+
+            // Add tasks with proper positioning
+            fixedSchedule.forEach(task => {
+                if (task.dayOfWeek === currentDate.getDay()) {
+                    const taskElement = createTaskElement(task);
+                    taskElement.classList.add('day-view');
+                    
+                    const [hours, minutes] = task.time.split(':').map(Number);
+                    const duration = task.duration || 60;
+                    
+                    // Each hour slot is 2000px tall
+                    // For 8:00 AM, we want position 0
+                    // For 8:15 AM, we want position 500 (quarter of 2000)
+                    // For 9:00 AM, we want position 2000
+                    const hourPosition = (hours - 8) * 2000;  // Position for the hour
+                    const minutePosition = (minutes / 60) * 2000;  // Position within the hour
+                    const topPosition = hourPosition + minutePosition;
+                    
+                    // Calculate height: each minute is 2000/60 pixels tall
+                    const heightInPixels = (duration / 60) * 2000;
+                    
+                    taskElement.style.top = `${topPosition}px`;
+                    taskElement.style.height = `${heightInPixels - 4}px`;  // Subtract 4px for gap
+                    
+                    hourSlots.appendChild(taskElement);
+                }
+            });
+        }
+
+        function createTaskElement(task) {
+            const taskElement = document.createElement('div');
+            taskElement.className = 'task-item';
+            taskElement.setAttribute('data-task-id', task.id);
+            
+            const completed = localStorage.getItem(`task-${task.id}-completed`) === 'true';
+            if (completed) taskElement.classList.add('completed');
+            
+            // Calculate end time
+            const [hours, minutes] = task.time.split(':').map(Number);
+            const endTime = new Date(2024, 0, 1, hours, minutes + (task.duration || 0));
+            const endTimeStr = endTime.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                hour12: true 
+            });
+            
+            taskElement.innerHTML = `
+                <div class="checkbox" onclick="toggleComplete('${task.id}')"></div>
+                <div class="task-content">
+                    <strong>${task.title}</strong>
+                    <p>
+                        <span style="color: #4CAF50">${task.time} - ${endTimeStr}</span><br>
+                        ${task.description}
+                    </p>
+                </div>
+            `;
+            
+            return taskElement;
+        }
+
+        function handleDragStart(e) {
+            e.target.classList.add('dragging');
+            e.dataTransfer.setData('text/plain', e.target.getAttribute('data-task-id'));
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            document.querySelectorAll('.hour-slot').forEach(slot => {
+                slot.classList.remove('drag-over');
+            });
+        }
+
+        function previousDay() {
+            currentDate.setDate(currentDate.getDate() - 1);
+            if (currentView === 'day') {
+                loadDayView();
+            } else {
+                loadWeekView();
+            }
+        }
+
+        function nextDay() {
+            currentDate.setDate(currentDate.getDate() + 1);
+            if (currentView === 'day') {
+                loadDayView();
+            } else {
+                loadWeekView();
+            }
+        }
+
+        function getWeekNumber(date) {
+            const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+            const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+            return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+        }
+
+        function getStartOfWeek(date) {
+            const diff = date.getDate() - date.getDay();
+            return new Date(date.setDate(diff));
+        }
+
+        function loadWeekView() {
+            const weekGrid = document.getElementById('weekGrid');
+            weekGrid.innerHTML = '';
+            
+            const startOfWeek = getStartOfWeek(new Date(currentDate));
+            document.getElementById('currentDate').textContent = `Week ${getWeekNumber(currentDate)}`;
+
+            for (let i = 0; i < 7; i++) {
+                const dayColumn = document.createElement('div');
+                dayColumn.className = 'day-column';
+                
+                const currentDay = new Date(startOfWeek);
+                currentDay.setDate(startOfWeek.getDate() + i);
+                
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'day-header';
+                dayHeader.innerHTML = `
+                    ${daysOfWeek[i]}
+                    <div class="date">
+                        ${currentDay.toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric' 
+                        })}
+                    </div>
+                `;
+                
+                const tasksContainer = document.createElement('div');
+                tasksContainer.id = `day-${i}`;
+                
+                dayColumn.appendChild(dayHeader);
+                dayColumn.appendChild(tasksContainer);
+                weekGrid.appendChild(dayColumn);
+            }
+            
+            loadTasks();
+        }
+
+        function loadTasks() {
+            // Clear all day containers
+            for (let i = 0; i < 7; i++) {
+                const container = document.getElementById(`day-${i}`);
+                if (container) container.innerHTML = '';
+            }
+
+            // Load tasks for each day
+            fixedSchedule.forEach(task => {
+                const container = document.getElementById(`day-${task.dayOfWeek}`);
+                if (container) {
+                    const taskElement = createTaskElement(task);
+                    container.appendChild(taskElement);
+                }
+            });
+        }
+
+        function createSparkle(x, y) {
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle';
+            sparkle.style.left = `${x}px`;
+            sparkle.style.top = `${y}px`;
+            sparkle.innerHTML = '✨';
+            document.body.appendChild(sparkle);
+            
+            setTimeout(() => sparkle.remove(), 800);
+        }
+
+        function addSparkles(element) {
+            const rect = element.getBoundingClientRect();
+            const sparkleCount = 8;
+            
+            for (let i = 0; i < sparkleCount; i++) {
+                setTimeout(() => {
+                    const x = rect.left + Math.random() * rect.width;
+                    const y = rect.top + Math.random() * rect.height;
+                    createSparkle(x, y);
+                }, i * 100);
+            }
+
+            setTimeout(() => {
+                const checkmark = document.createElement('div');
+                checkmark.className = 'checkmark';
+                checkmark.innerHTML = '✅';
+                element.appendChild(checkmark);
+                
+                setTimeout(() => checkmark.remove(), 1000);
+            }, sparkleCount * 100);
+        }
+
+        function toggleComplete(taskId) {
+            const currentState = localStorage.getItem(`task-${taskId}-completed`) === 'true';
+            const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
+            
+            if (!currentState && taskElement) {
+                addSparkles(taskElement);
+            }
+            
+            localStorage.setItem(`task-${taskId}-completed`, !currentState);
+            if (currentView === 'day') {
+                loadDayView();
+            } else {
+                loadTasks();
+            }
+        }
+
+        // Initialize the view
+        document.addEventListener('DOMContentLoaded', () => {
+            toggleView('week');
+        });
+    </script>
+</body>
+</html> 
