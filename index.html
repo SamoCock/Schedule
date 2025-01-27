@@ -52,49 +52,26 @@
 
         /* Theme toggle button */
         .theme-toggle {
-            position: fixed !important;
+            position: fixed;
             bottom: 20px;
             right: 20px;
             z-index: 9999;
-            background: var(--primary-gradient);
-            border: none;
-            border-radius: 50%;
             width: 60px;
             height: 60px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            border: none;
             cursor: pointer;
-            box-shadow: var(--shadow-md);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 24px;
-            transform-origin: center;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            transition: transform 0.3s ease;
         }
 
         .theme-toggle:hover {
-            transform: scale(1.1) rotate(360deg);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .theme-toggle::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: var(--primary-gradient);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-                        height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: -1;
-        }
-
-        .theme-toggle:hover::before {
-            width: 150%;
-            height: 150%;
+            transform: scale(1.1);
         }
 
         /* Theme-specific styles */
@@ -198,8 +175,6 @@
             animation: sparkle 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
             font-size: 1.4em;
             z-index: 1000;
-            color: var(--accent-color);
-            text-shadow: 0 0 10px var(--accent-color);
         }
 
         /* Checkmark animation for completed tasks */
@@ -1467,13 +1442,12 @@
         function createSparkle(x, y) {
             const sparkle = document.createElement('div');
             sparkle.className = 'sparkle';
-            sparkle.style.left = `${x}px`;
-            sparkle.style.top = `${y}px`;
+            sparkle.style.left = x + 'px';
+            sparkle.style.top = y + 'px';
             
             const currentTheme = document.documentElement.getAttribute('data-theme');
             sparkle.textContent = currentTheme === 'sigma' ? '✨' : '🌸';
             sparkle.style.color = getComputedStyle(document.documentElement).getPropertyValue('--accent-color');
-            sparkle.style.textShadow = `0 0 10px ${getComputedStyle(document.documentElement).getPropertyValue('--accent-color')}`;
             
             document.body.appendChild(sparkle);
             setTimeout(() => sparkle.remove(), 800);
@@ -1482,24 +1456,22 @@
         function addSparkles(element) {
             const rect = element.getBoundingClientRect();
             const sparkleCount = 8;
-            const currentTheme = document.documentElement.getAttribute('data-theme');
             
             for (let i = 0; i < sparkleCount; i++) {
                 setTimeout(() => {
                     const x = rect.left + Math.random() * rect.width;
                     const y = rect.top + Math.random() * rect.height;
                     createSparkle(x, y);
-                }, i * 100);
+                }, i * 50);
             }
 
-            setTimeout(() => {
-                const checkmark = document.createElement('div');
-                checkmark.className = 'checkmark';
-                checkmark.textContent = currentTheme === 'sigma' ? '✓' : '💖';
-                element.appendChild(checkmark);
-                
-                setTimeout(() => checkmark.remove(), 1000);
-            }, sparkleCount * 100);
+            const checkmark = document.createElement('div');
+            checkmark.className = 'checkmark';
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            checkmark.textContent = currentTheme === 'sigma' ? '✓' : '💖';
+            element.appendChild(checkmark);
+            
+            setTimeout(() => checkmark.remove(), 1000);
         }
 
         // Add mobile styles to the document
