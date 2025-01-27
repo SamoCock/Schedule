@@ -1,10 +1,161 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="sigma">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Schedule</title>
     <style>
+        /* Theme variables */
+        html[data-theme="sigma"] {
+            --primary-color: #4CAF50;
+            --primary-gradient: linear-gradient(135deg, #4CAF50, #45a049);
+            --accent-color: #64DD17;
+            --bg-dark: #0f111a;
+            --bg-card: #1a1d2e;
+            --bg-task: #242837;
+            --border-color: #2a2e3f;
+            --text-primary: #ffffff;
+            --text-secondary: #6e7891;
+            --checkbox-bg: rgba(76, 175, 80, 0.05);
+            --sparkle-emoji: '✨';
+            --checkmark-emoji: '✓';
+        }
+
+        html[data-theme="coquette"] {
+            --primary-color: #FF69B4;
+            --primary-gradient: linear-gradient(135deg, #FF69B4, #FFB6C1);
+            --accent-color: #FF1493;
+            --bg-dark: #FFF0F5;
+            --bg-card: #FFF5F8;
+            --bg-task: #FFFFFF;
+            --border-color: #FFB6C1;
+            --text-primary: #FF1493;
+            --text-secondary: #FF69B4;
+            --checkbox-bg: rgba(255, 105, 180, 0.05);
+            --sparkle-emoji: '🌸';
+            --checkmark-emoji: '💖';
+            --shadow-sm: 0 4px 6px rgba(255, 105, 180, 0.1);
+            --shadow-md: 0 6px 12px rgba(255, 105, 180, 0.15);
+            --shadow-lg: 0 8px 16px rgba(255, 105, 180, 0.2);
+        }
+
+        /* Theme transition */
+        * {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Add theme toggle button */
+        .theme-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            cursor: pointer;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transform-origin: center;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1) rotate(360deg);
+        }
+
+        /* Coquette mode specific styles */
+        html[data-theme="coquette"] .task-item {
+            border: 2px solid var(--border-color);
+            border-left: 3px solid var(--primary-color);
+        }
+
+        html[data-theme="coquette"] .task-item::before {
+            background: var(--primary-gradient);
+            opacity: 0.5;
+        }
+
+        html[data-theme="coquette"] .task-item:hover::before {
+            opacity: 1;
+        }
+
+        html[data-theme="coquette"] .checkbox {
+            border-radius: 50%;
+            border: 2px solid var(--primary-color);
+            background: white;
+        }
+
+        html[data-theme="coquette"] .checkbox::before {
+            content: '🎀';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.8em;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        html[data-theme="coquette"] .checkbox:hover::before {
+            opacity: 0.5;
+        }
+
+        html[data-theme="coquette"] .task-item.completed .checkbox::after {
+            content: '💖';
+            text-shadow: none;
+        }
+
+        html[data-theme="coquette"] .calendar-controls {
+            background: white;
+            border: 2px solid var(--border-color);
+        }
+
+        html[data-theme="coquette"] button {
+            background: white;
+            border: 2px solid var(--border-color);
+            color: var(--primary-color);
+        }
+
+        html[data-theme="coquette"] button:hover {
+            background: var(--primary-gradient);
+            color: white;
+            border-color: transparent;
+        }
+
+        html[data-theme="coquette"] .active-view-btn {
+            background: var(--primary-gradient);
+            color: white;
+            border-color: transparent;
+        }
+
+        /* Add cute fonts for coquette mode */
+        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap');
+
+        html[data-theme="coquette"] * {
+            font-family: 'Quicksand', sans-serif;
+        }
+
+        html[data-theme="coquette"] .day-header .date {
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        /* Theme transition animations */
+        @keyframes themeSwitch {
+            0% { transform: scale(1) rotate(0); }
+            50% { transform: scale(1.2) rotate(180deg); }
+            100% { transform: scale(1) rotate(360deg); }
+        }
+
+        .theme-switching * {
+            animation: themeSwitch 0.5s ease-in-out;
+        }
+
         :root {
             --primary-color: #4CAF50;
             --primary-gradient: linear-gradient(135deg, #4CAF50, #45a049);
@@ -503,6 +654,8 @@
         </div>
     </div>
 
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">🎀</button>
+
     <script>
         let currentDate = new Date();
         let currentView = 'week';
@@ -862,7 +1015,8 @@
             sparkle.className = 'sparkle';
             sparkle.style.left = `${x}px`;
             sparkle.style.top = `${y}px`;
-            sparkle.innerHTML = '✨';
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            sparkle.textContent = currentTheme === 'sigma' ? '✨' : '🌸';
             document.body.appendChild(sparkle);
             
             setTimeout(() => sparkle.remove(), 800);
@@ -883,7 +1037,8 @@
             setTimeout(() => {
                 const checkmark = document.createElement('div');
                 checkmark.className = 'checkmark';
-                checkmark.innerHTML = '✅';
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                checkmark.textContent = currentTheme === 'sigma' ? '✅' : '💝';
                 element.appendChild(checkmark);
                 
                 setTimeout(() => checkmark.remove(), 1000);
@@ -963,6 +1118,32 @@
             document.head.appendChild(styleSheet);
             toggleView('week');
         });
+
+        // Add theme switching function
+        function toggleTheme() {
+            const html = document.documentElement;
+            const themeToggle = document.getElementById('themeToggle');
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'sigma' ? 'coquette' : 'sigma';
+            
+            // Add transition class
+            document.body.classList.add('theme-switching');
+            
+            // Switch theme
+            html.setAttribute('data-theme', newTheme);
+            themeToggle.textContent = newTheme === 'sigma' ? '🎀' : '😎';
+            
+            // Update sparkles for the new theme
+            const sparkleEmoji = newTheme === 'sigma' ? '✨' : '🌸';
+            document.querySelectorAll('.sparkle').forEach(sparkle => {
+                sparkle.textContent = sparkleEmoji;
+            });
+            
+            // Remove transition class after animation
+            setTimeout(() => {
+                document.body.classList.remove('theme-switching');
+            }, 500);
+        }
     </script>
 </body>
 </html> 
