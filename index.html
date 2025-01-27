@@ -7,12 +7,17 @@
     <style>
         :root {
             --primary-color: #4CAF50;
+            --primary-gradient: linear-gradient(135deg, #4CAF50, #45a049);
+            --accent-color: #64DD17;
             --bg-dark: #0f111a;
             --bg-card: #1a1d2e;
             --bg-task: #242837;
             --border-color: #2a2e3f;
             --text-primary: #ffffff;
             --text-secondary: #6e7891;
+            --shadow-sm: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-md: 0 6px 12px rgba(0,0,0,0.15);
+            --shadow-lg: 0 8px 16px rgba(0,0,0,0.2);
         }
 
         body {
@@ -143,31 +148,50 @@
             border-radius: 12px;
             border-left: 3px solid var(--primary-color);
             font-size: 0.95em;
-            transition: all 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             gap: 14px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .task-item:not(.day-view)::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: var(--primary-gradient);
+            transition: all 0.3s ease;
         }
 
         .task-item:not(.day-view):hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+            transform: translateY(-2px) scale(1.01);
+            box-shadow: var(--shadow-lg);
         }
 
-        .task-item:not(.day-view) .checkbox {
-            width: 22px;
-            height: 22px;
+        .task-item:not(.day-view):hover::before {
+            width: 6px;
+        }
+
+        .task-item .checkbox {
+            width: 24px;
+            height: 24px;
             border: 2px solid var(--primary-color);
             border-radius: 8px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             flex-shrink: 0;
             position: relative;
+            background-color: rgba(76, 175, 80, 0.05);
         }
 
-        .task-item:not(.day-view) .checkbox:hover {
-            background-color: rgba(76, 175, 80, 0.1);
+        .task-item .checkbox:hover {
+            background-color: rgba(76, 175, 80, 0.15);
+            transform: scale(1.05);
         }
 
         .task-item:not(.day-view) .task-content {
@@ -191,6 +215,34 @@
             overflow: hidden;
             text-overflow: ellipsis;
             line-height: 1.4;
+        }
+
+        .task-item.completed {
+            opacity: 0.75;
+        }
+
+        .task-item.completed .checkbox {
+            background: var(--primary-gradient);
+            border-color: transparent;
+        }
+
+        .task-item.completed .checkbox::after {
+            content: '✓';
+            color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1em;
+            font-weight: bold;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .task-item.completed .task-content {
+            opacity: 0.7;
+            text-decoration: line-through;
+            text-decoration-color: var(--primary-color);
+            text-decoration-thickness: 2px;
         }
 
         /* Day View specific styles */
@@ -268,38 +320,21 @@
             font-size: 0.8em;
         }
 
-        .task-item.completed .checkbox {
-            background-color: var(--primary-color);
-            position: relative;
-        }
-
-        .task-item.completed .checkbox::after {
-            content: '✓';
-            color: white;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 0.9em;
-        }
-
-        .task-item.completed .task-content {
-            opacity: 0.6;
-        }
-
         /* Sparkle animation */
         @keyframes sparkle {
             0% { transform: scale(0) rotate(0deg); opacity: 0; }
-            50% { transform: scale(1.2) rotate(180deg); opacity: 1; }
+            50% { transform: scale(1.5) rotate(180deg); opacity: 1; }
             100% { transform: scale(0) rotate(360deg); opacity: 0; }
         }
 
         .sparkle {
             position: fixed;
             pointer-events: none;
-            animation: sparkle 0.8s ease-in-out forwards;
-            font-size: 1.2em;
+            animation: sparkle 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            font-size: 1.4em;
             z-index: 1000;
+            color: var(--accent-color);
+            text-shadow: 0 0 10px rgba(100, 221, 23, 0.5);
         }
 
         /* Loading state */
@@ -342,6 +377,40 @@
             .task-item.day-view:hover {
                 box-shadow: 0 6px 12px rgba(0,0,0,0.4);
             }
+        }
+
+        /* Progress indicator */
+        .day-progress {
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .day-progress-bar {
+            height: 100%;
+            background: var(--primary-gradient);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        .day-header {
+            position: relative;
+        }
+
+        .day-stats {
+            font-size: 0.85em;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Task time indicator */
+        .task-time {
+            font-size: 0.85em;
+            color: var(--accent-color);
+            font-weight: 500;
+            margin-bottom: 2px;
         }
     </style>
 </head>
@@ -492,7 +561,7 @@
             taskElement.className = 'task-item';
             taskElement.setAttribute('data-task-id', task.id);
             
-            const completed = localStorage.getItem(`task-${task.id}-completed`) === 'true';
+            const completed = localStorage.getItem(`task-${task.id}-${formatDate(currentDate)}`) === 'true';
             if (completed) taskElement.classList.add('completed');
             
             // Calculate end time
@@ -505,17 +574,67 @@
             });
             
             taskElement.innerHTML = `
-                <div class="checkbox" onclick="toggleComplete('${task.id}')"></div>
+                <div class="checkbox" onclick="toggleComplete('${task.id}', event)"></div>
                 <div class="task-content">
+                    <div class="task-time">${task.time} - ${endTimeStr}</div>
                     <strong>${task.title}</strong>
-                    <p>
-                        <span style="color: #4CAF50">${task.time} - ${endTimeStr}</span><br>
-                        ${task.description}
-                    </p>
+                    <p>${task.description}</p>
                 </div>
             `;
             
             return taskElement;
+        }
+
+        function formatDate(date) {
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        }
+
+        function toggleComplete(taskId, event) {
+            event.stopPropagation();
+            const dateKey = formatDate(currentDate);
+            const currentState = localStorage.getItem(`task-${taskId}-${dateKey}`) === 'true';
+            const newState = !currentState;
+            
+            // Update localStorage
+            localStorage.setItem(`task-${taskId}-${dateKey}`, newState);
+            
+            // Find all instances of this task in both views and update them
+            document.querySelectorAll(`[data-task-id="${taskId}"]`).forEach(taskElement => {
+                if (newState) {
+                    taskElement.classList.add('completed');
+                    addSparkles(taskElement);
+                } else {
+                    taskElement.classList.remove('completed');
+                }
+            });
+
+            // Update progress bars
+            updateDayProgress(currentDate.getDay());
+        }
+
+        function updateDayProgress(dayOfWeek) {
+            const dateKey = formatDate(currentDate);
+            const dayTasks = fixedSchedule.filter(task => task.dayOfWeek === dayOfWeek);
+            const completedTasks = dayTasks.filter(task => 
+                localStorage.getItem(`task-${task.id}-${dateKey}`) === 'true'
+            ).length;
+            
+            const progress = (completedTasks / dayTasks.length) * 100;
+            
+            // Update progress in week view
+            const dayColumn = document.querySelector(`#day-${dayOfWeek}`);
+            if (dayColumn) {
+                const progressBar = dayColumn.parentElement.querySelector('.day-progress-bar');
+                if (progressBar) {
+                    progressBar.style.width = `${progress}%`;
+                }
+                
+                // Update stats
+                const statsElement = dayColumn.parentElement.querySelector('.day-stats');
+                if (statsElement) {
+                    statsElement.textContent = `${completedTasks}/${dayTasks.length} tasks completed`;
+                }
+            }
         }
 
         function handleDragStart(e) {
@@ -584,6 +703,10 @@
                             day: 'numeric' 
                         })}
                     </div>
+                    <div class="day-stats">0/0 tasks completed</div>
+                    <div class="day-progress">
+                        <div class="day-progress-bar" style="width: 0%"></div>
+                    </div>
                 `;
                 
                 const tasksContainer = document.createElement('div');
@@ -595,6 +718,11 @@
             }
             
             loadTasks();
+            
+            // Update progress for all days
+            for (let i = 0; i < 7; i++) {
+                updateDayProgress(i);
+            }
         }
 
         function loadTasks() {
@@ -645,22 +773,6 @@
                 
                 setTimeout(() => checkmark.remove(), 1000);
             }, sparkleCount * 100);
-        }
-
-        function toggleComplete(taskId) {
-            const currentState = localStorage.getItem(`task-${taskId}-completed`) === 'true';
-            const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
-            
-            if (!currentState && taskElement) {
-                addSparkles(taskElement);
-            }
-            
-            localStorage.setItem(`task-${taskId}-completed`, !currentState);
-            if (currentView === 'day') {
-                loadDayView();
-            } else {
-                loadTasks();
-            }
         }
 
         // Initialize the view
